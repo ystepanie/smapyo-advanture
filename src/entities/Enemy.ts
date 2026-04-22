@@ -1,47 +1,49 @@
 import Phaser from 'phaser';
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene, x, y, level) {
+    public hp: number;
+    public speed: number;
+    public attackRate: number;
+    public lastFired: number;
+
+    constructor(scene: Phaser.Scene, x: number, y: number, level: number) {
         super(scene, x, y, 'enemy');
         scene.add.existing(this);
         scene.physics.add.existing(this);
         
         this.hp = 20 + (level * 5);
         this.speed = 100 + (level * 5);
-        this.attackRate = 1500; // 적의 공격 속도 (1.5초마다)
+        this.attackRate = 1500;
         this.lastFired = 0;
         this.setDepth(5);
     }
 
-    update(player, time) {
+    update(player: Phaser.GameObjects.Components.Transform, time: number): void {
         if (!this.active) return;
         
-        const distance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+        const distance = Phaser.Math.Distance.Between(this.x, this.y, (player as any).x, (player as any).y);
         
-        // 일정 거리 이상이면 플레이어를 추격
         if (distance > 200) {
             this.scene.physics.moveToObject(this, player, this.speed);
         } else {
-            this.body.setVelocity(0); // 가까워지면 멈춰서 사격 준비
+            (this.body as Phaser.Physics.Arcade.Body).setVelocity(0);
         }
 
-        // 공격 주기에 맞춰 사격
         if (time > this.lastFired + this.attackRate) {
             this.fire(player);
             this.lastFired = time;
         }
     }
 
-    fire(target) {
-        // 씬의 enemyBullets 그룹에서 총알을 가져와 발사
-        const bullet = this.scene.enemyBullets.get(this.x, this.y);
+    fire(target: Phaser.GameObjects.Components.Transform): void {
+        const bullet = (this.scene as any).enemyBullets.get(this.x, this.y);
         if (bullet) {
-            bullet.fire(this.x, this.y, target, 250); // 적 총알 속도는 약간 느리게 설정
-            bullet.setTint(0xff0000); // 적 총알은 빨간색으로 표시
+            bullet.fire(this.x, this.y, target, 250);
+            bullet.setTint(0xff0000);
         }
     }
 
-    takeDamage(amount) {
+    takeDamage(amount: number): boolean {
         this.hp -= amount;
         if (this.hp <= 0) {
             this.destroy();

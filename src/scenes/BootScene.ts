@@ -5,7 +5,7 @@ export class BootScene extends Phaser.Scene {
         super('BootScene');
     }
 
-    preload() {
+    preload(): void {
         // Load assets
         this.load.image('player', 'assets/images/player.png');
         this.load.spritesheet('city-tiles', 'assets/images/tileset.png', {
@@ -29,7 +29,7 @@ export class BootScene extends Phaser.Scene {
         graphics.clear();
     }
 
-    create() {
+    create(): void {
         this.scene.start('SetupScene');
     }
 }

@@ -5,11 +5,21 @@ import { Enemy } from "../entities/Enemy";
 import { Bullet } from "../entities/Bullet";
 
 export class BattleScene extends Phaser.Scene {
+  private player!: Player;
+  private buildings!: Phaser.Physics.Arcade.StaticGroup;
+  private bullets!: Phaser.Physics.Arcade.Group;
+  private enemyBullets!: Phaser.Physics.Arcade.Group;
+  private enemies!: Phaser.Physics.Arcade.Group;
+  private cursors!: any;
+  private lastFired: number = 0;
+  private hpText!: Phaser.GameObjects.Text;
+  private aimGraphics!: Phaser.GameObjects.Graphics;
+
   constructor() {
     super("BattleScene");
   }
 
-  create() {
+  create(): void {
     this.add.text(
       16,
       16,
@@ -27,15 +37,17 @@ export class BattleScene extends Phaser.Scene {
     const map = this.make.tilemap({ key: "city-map" });
     const tileset = map.addTilesetImage("city", "city-tiles");
 
-    // 레이어 생성
-    const groundLayer = map.createLayer("Ground", tileset, 0, 0);
-    groundLayer.setScale(1.25);
-    groundLayer.setDepth(-1);
+    if (tileset) {
+        // 레이어 생성
+        const groundLayer = map.createLayer("Ground", tileset, 0, 0);
+        if (groundLayer) {
+            groundLayer.setScale(1.25);
+            groundLayer.setDepth(-1);
+        }
+    }
 
     this.buildings = this.physics.add.staticGroup();
 
-    // 프레임 번호로 건물 배치 (타일셋 이미지상의 위치를 기반으로 프레임 자동 할당)
-    // 81번, 85번 프레임 등은 타일셋 하단의 건물 이미지들입니다.
     this.buildings.create(200, 200, "city-tiles", 81).setScale(1).refreshBody();
     this.buildings.create(600, 400, "city-tiles", 85).setScale(1).refreshBody();
     this.buildings.create(400, 100, "city-tiles", 90).setScale(1).refreshBody();
@@ -48,7 +60,6 @@ export class BattleScene extends Phaser.Scene {
       runChildUpdate: true,
     });
 
-    // 적들이 쏠 총알 그룹 추가
     this.enemyBullets = this.physics.add.group({
       classType: Bullet,
       maxSize: 50,
@@ -61,9 +72,13 @@ export class BattleScene extends Phaser.Scene {
     this.physics.add.collider(this.enemies, this.buildings);
 
     this.spawnEnemies();
-    console.log(`Enemies spawned: ${this.enemies.getLength()}`);
 
-    this.cursors = this.input.keyboard.createCursorKeys();
+    this.cursors = this.input.keyboard!.addKeys({
+      up: Phaser.Input.Keyboard.KeyCodes.W,
+      down: Phaser.Input.Keyboard.KeyCodes.S,
+      left: Phaser.Input.Keyboard.KeyCodes.A,
+      right: Phaser.Input.Keyboard.KeyCodes.D,
+    });
     this.lastFired = 0;
 
     this.hpText = this.add.text(
@@ -73,36 +88,34 @@ export class BattleScene extends Phaser.Scene {
       { fontSize: "18px", fill: "#2ecc71" },
     );
 
-    // 사거리 가이드 그래픽스 생성
     this.aimGraphics = this.add.graphics();
 
     this.physics.add.overlap(
       this.bullets,
       this.enemies,
-      this.hitEnemy,
-      null,
+      this.hitEnemy as any,
+      undefined,
       this,
     );
     this.physics.add.overlap(
       this.player,
       this.enemies,
-      this.hitPlayer,
-      null,
+      this.hitPlayer as any,
+      undefined,
       this,
     );
 
-    // 적 총알이 플레이어에게 닿았을 때
     this.physics.add.overlap(
       this.player,
       this.enemyBullets,
-      this.hitPlayerByBullet,
-      null,
+      this.hitPlayerByBullet as any,
+      undefined,
       this,
     );
   }
 
-  spawnEnemies() {
-    const count = 20 + GameState.level * 10;
+  spawnEnemies(): void {
+    const count = 5 + GameState.level * 2;
     let spawned = 0;
     let attempts = 0;
 
@@ -111,7 +124,6 @@ export class BattleScene extends Phaser.Scene {
       const x = Phaser.Math.Between(50, 750);
       const y = Phaser.Math.Between(50, 550);
 
-      // 플레이어와 너무 가깝지 않은 곳에 소환
       if (
         Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y) > 150
       ) {
@@ -122,20 +134,18 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  update(time) {
+  update(time: number): void {
     this.player.update(this.cursors);
 
-    // 마우스 클릭 사격 (또는 누르고 있는 동안 사격)
     if (this.input.activePointer.isDown && time > this.lastFired) {
       this.fireBullet(this.input.activePointer);
       this.lastFired = time + GameState.playerStats.attackRate;
     }
 
-    // 사거리 가이드 화살표 그리기
     this.drawAimGuide();
 
     this.enemies.getChildren().forEach((enemy) => {
-      enemy.update(this.player, time);
+      (enemy as Enemy).update(this.player, time);
     });
 
     if (this.enemies.countActive() === 0) {
@@ -143,28 +153,27 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  fireBullet(pointer) {
-    const bullet = this.bullets.get(this.player.x, this.player.y);
+  fireBullet(pointer: Phaser.Input.Pointer): void {
+    const bullet = this.bullets.get(this.player.x, this.player.y) as Bullet;
     if (bullet) {
-      // 마우스 포인터의 위치를 타겟으로 설정
       bullet.fire(
         this.player.x,
         this.player.y,
         { x: pointer.worldX, y: pointer.worldY },
         GameState.playerStats.bulletSpeed,
-        GameState.playerStats.bulletRange, // 사거리 적용
+        GameState.playerStats.bulletRange,
       );
     }
   }
 
-  hitEnemy(bullet, enemy) {
+  hitEnemy(bullet: Bullet, enemy: Enemy): void {
     bullet.onHit();
     if (enemy.takeDamage(GameState.playerStats.attackDamage)) {
       // Enemy destroyed
     }
   }
 
-  hitPlayer(player, enemy) {
+  hitPlayer(player: Player, enemy: Enemy): void {
     if (player.takeDamage(10, this.time.now)) {
       this.hpText.setText(`HP: ${player.hp}/${GameState.playerStats.maxHp}`);
       if (player.hp <= 0) {
@@ -173,9 +182,9 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  hitPlayerByBullet(player, bullet) {
-    bullet.onHit(); // 총알 제거
-    if (player.takeDamage(5, this.time.now)) { // 총알 데미지는 5로 설정
+  hitPlayerByBullet(player: Player, bullet: Bullet): void {
+    bullet.onHit();
+    if (player.takeDamage(5, this.time.now)) {
       this.hpText.setText(`HP: ${player.hp}/${GameState.playerStats.maxHp}`);
       if (player.hp <= 0) {
         this.scene.start("GameOverScene");
@@ -183,31 +192,42 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  drawAimGuide() {
+  drawAimGuide(): void {
     this.aimGraphics.clear();
-    
+
     const pointer = this.input.activePointer;
     const startX = this.player.x;
     const startY = this.player.y;
-    const angle = Phaser.Math.Angle.Between(startX, startY, pointer.worldX, pointer.worldY);
-    
-    // 사거리만큼만 화살표를 그리기
+    const angle = Phaser.Math.Angle.Between(
+      startX,
+      startY,
+      pointer.worldX,
+      pointer.worldY,
+    );
+
     const range = GameState.playerStats.bulletRange;
     const endX = startX + Math.cos(angle) * range;
     const endY = startY + Math.sin(angle) * range;
-    
+
     this.aimGraphics.lineStyle(2, 0xffffff, 0.5);
-    
-    // 선 그리기
     this.aimGraphics.lineBetween(startX, startY, endX, endY);
-    
-    // 화살표 머리 그리기
+
     const headSize = 10;
-    this.aimGraphics.lineBetween(endX, endY, endX - headSize * Math.cos(angle - Math.PI / 6), endY - headSize * Math.sin(angle - Math.PI / 6));
-    this.aimGraphics.lineBetween(endX, endY, endX - headSize * Math.cos(angle + Math.PI / 6), endY - headSize * Math.sin(angle + Math.PI / 6));
+    this.aimGraphics.lineBetween(
+      endX,
+      endY,
+      endX - headSize * Math.cos(angle - Math.PI / 6),
+      endY - headSize * Math.sin(angle - Math.PI / 6),
+    );
+    this.aimGraphics.lineBetween(
+      endX,
+      endY,
+      endX - headSize * Math.cos(angle + Math.PI / 6),
+      endY - headSize * Math.sin(angle + Math.PI / 6),
+    );
   }
 
-  victory() {
+  victory(): void {
     GameState.level++;
     GameState.playerStats.hp = this.player.hp;
     this.scene.start("UpgradeScene");
