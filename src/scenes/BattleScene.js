@@ -49,11 +49,11 @@ export class BattleScene extends Phaser.Scene {
     });
 
     this.enemies = this.physics.add.group({
-      classType: Enemy,
-      runChildUpdate: true,
+      classType: Enemy
     });
 
     this.spawnEnemies();
+    console.log(`Enemies spawned: ${this.enemies.getLength()}`);
 
     this.cursors = this.input.keyboard.createCursorKeys();
     this.lastFired = 0;
@@ -83,12 +83,19 @@ export class BattleScene extends Phaser.Scene {
 
   spawnEnemies() {
     const count = 3 + GameState.level;
-    for (let i = 0; i < count; i++) {
+    let spawned = 0;
+    let attempts = 0;
+    
+    while (spawned < count && attempts < 100) {
+      attempts++;
       const x = Phaser.Math.Between(50, 750);
       const y = Phaser.Math.Between(50, 550);
-      if (Phaser.Math.Distance.Between(x, y, 400, 300) > 200) {
+      
+      // 플레이어와 너무 가깝지 않은 곳에 소환
+      if (Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y) > 150) {
         const enemy = new Enemy(this, x, y, GameState.level);
         this.enemies.add(enemy);
+        spawned++;
       }
     }
   }

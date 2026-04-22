@@ -8,6 +8,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         
         this.hp = 20 + (level * 5);
         this.speed = 100 + (level * 5);
+        this.setDepth(5);
     }
 
     update(player) {

@@ -15,6 +15,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.maxHp = stats.maxHp;
         this.speed = stats.speed;
         this.lastHit = 0;
+        this.setDepth(10);
     }
 
     update(cursors) {
