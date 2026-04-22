@@ -6,14 +6,11 @@ export class BootScene extends Phaser.Scene {
     }
 
     preload() {
+        // Load assets
+        this.load.image('player', 'assets/images/player.png');
+
         const graphics = this.add.graphics();
         
-        // Player
-        graphics.fillStyle(0x4a90e2, 1);
-        graphics.fillCircle(16, 16, 16);
-        graphics.generateTexture('player', 32, 32);
-        graphics.clear();
-
         // Enemy
         graphics.fillStyle(0xe74c3c, 1);
         graphics.fillCircle(16, 16, 16);

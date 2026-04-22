@@ -6,6 +6,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         scene.add.existing(this);
         scene.physics.add.existing(this);
         
+        // Scale down to match original 32x32 size
+        this.setDisplaySize(32, 32);
+        this.body.setSize(this.width, this.height);
+        
         this.setCollideWorldBounds(true);
         this.hp = stats.hp;
         this.maxHp = stats.maxHp;
