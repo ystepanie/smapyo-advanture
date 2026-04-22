@@ -122,28 +122,10 @@ export class BattleScene extends Phaser.Scene {
   update(time) {
     this.player.update(this.cursors);
 
-    if (time > this.lastFired) {
-      const nearestEnemy = this.enemies.getChildren().reduce((prev, curr) => {
-        if (!prev) return curr;
-        const distPrev = Phaser.Math.Distance.Between(
-          this.player.x,
-          this.player.y,
-          prev.x,
-          prev.y,
-        );
-        const distCurr = Phaser.Math.Distance.Between(
-          this.player.x,
-          this.player.y,
-          curr.x,
-          curr.y,
-        );
-        return distCurr < distPrev ? curr : prev;
-      }, null);
-
-      if (nearestEnemy) {
-        this.fireBullet(nearestEnemy);
-        this.lastFired = time + GameState.playerStats.attackRate;
-      }
+    // 마우스 클릭 사격 (또는 누르고 있는 동안 사격)
+    if (this.input.activePointer.isDown && time > this.lastFired) {
+      this.fireBullet(this.input.activePointer);
+      this.lastFired = time + GameState.playerStats.attackRate;
     }
 
     this.enemies.getChildren().forEach((enemy) => {
@@ -155,13 +137,14 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  fireBullet(target) {
+  fireBullet(pointer) {
     const bullet = this.bullets.get(this.player.x, this.player.y);
     if (bullet) {
+      // 마우스 포인터의 위치를 타겟으로 설정
       bullet.fire(
         this.player.x,
         this.player.y,
-        target,
+        { x: pointer.worldX, y: pointer.worldY },
         GameState.playerStats.bulletSpeed,
       );
     }
