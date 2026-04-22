@@ -48,6 +48,13 @@ export class BattleScene extends Phaser.Scene {
       runChildUpdate: true,
     });
 
+    // 적들이 쏠 총알 그룹 추가
+    this.enemyBullets = this.physics.add.group({
+      classType: Bullet,
+      maxSize: 50,
+      runChildUpdate: true,
+    });
+
     this.enemies = this.physics.add.group({
       classType: Enemy,
     });
@@ -77,6 +84,15 @@ export class BattleScene extends Phaser.Scene {
       this.player,
       this.enemies,
       this.hitPlayer,
+      null,
+      this,
+    );
+
+    // 적 총알이 플레이어에게 닿았을 때
+    this.physics.add.overlap(
+      this.player,
+      this.enemyBullets,
+      this.hitPlayerByBullet,
       null,
       this,
     );
@@ -131,7 +147,7 @@ export class BattleScene extends Phaser.Scene {
     }
 
     this.enemies.getChildren().forEach((enemy) => {
-      enemy.update(this.player);
+      enemy.update(this.player, time);
     });
 
     if (this.enemies.countActive() === 0) {
@@ -160,6 +176,16 @@ export class BattleScene extends Phaser.Scene {
 
   hitPlayer(player, enemy) {
     if (player.takeDamage(10, this.time.now)) {
+      this.hpText.setText(`HP: ${player.hp}/${GameState.playerStats.maxHp}`);
+      if (player.hp <= 0) {
+        this.scene.start("GameOverScene");
+      }
+    }
+  }
+
+  hitPlayerByBullet(player, bullet) {
+    bullet.onHit(); // 총알 제거
+    if (player.takeDamage(5, this.time.now)) { // 총알 데미지는 5로 설정
       this.hpText.setText(`HP: ${player.hp}/${GameState.playerStats.maxHp}`);
       if (player.hp <= 0) {
         this.scene.start("GameOverScene");

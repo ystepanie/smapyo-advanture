@@ -13,4 +13,10 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
     onHit() {
         this.disableBody(true, true);
     }
+
+    update() {
+        if (this.active && (this.x < 0 || this.x > 800 || this.y < 0 || this.y > 600)) {
+            this.onHit();
+        }
+    }
 }
