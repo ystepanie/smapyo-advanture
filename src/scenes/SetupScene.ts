@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { GameState } from "../state/GameState";
+import { PLAYER_TYPES } from "../constants/playerTypes";
 
 export class SetupScene extends Phaser.Scene {
   constructor() {
@@ -18,36 +19,45 @@ export class SetupScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(width / 2, height / 2 - 50, "팀을 선택하세요", {
+      .text(width / 2, height / 2 - 80, "팀을 선택하세요", {
         fontSize: "24px",
         color: "#fff",
         fontFamily: "Inter",
       })
       .setOrigin(0.5);
 
-    const teams = [
-      { name: "SM1팀", stats: { speed: 2, power: 1, hp: 2 } },
-      { name: "SM2팀", stats: { speed: 1, power: 2, hp: 2 } },
-      { name: "SM3팀", stats: { speed: 3, power: 1, hp: 1 } },
-    ];
+    Object.keys(PLAYER_TYPES).forEach((teamKey, index) => {
+      const team = PLAYER_TYPES[teamKey];
+      const btn = this.add.container(width / 2, height / 2 + index * 70);
 
-    teams.forEach((team, index) => {
-      const btn = this.add.container(width / 2, height / 2 + index * 60);
-      const bg = this.add.rectangle(0, 0, 200, 40, 0x3498db).setInteractive();
-      const text = this.add
-        .text(0, 0, team.name, { fontSize: "18px", color: "#fff" })
+      const bg = this.add.rectangle(0, 0, 350, 60, team.color).setInteractive();
+      const title = this.add
+        .text(0, -10, team.teamName, {
+          fontSize: "20px",
+          color: "#fff",
+          fontStyle: "bold",
+        })
+        .setOrigin(0.5);
+      const desc = this.add
+        .text(0, 15, team.description, { fontSize: "14px", color: "#eee" })
         .setOrigin(0.5);
 
-      btn.add([bg, text]);
+      btn.add([bg, title, desc]);
 
       bg.on("pointerdown", () => {
-        GameState.applyTeamStats(team.name, team.stats);
+        GameState.applyTeamStats(teamKey);
         GameState.playerInfo.name = "혁명적";
         this.scene.start("BattleScene");
       });
 
-      bg.on("pointerover", () => bg.setFillStyle(0x2980b9));
-      bg.on("pointerout", () => bg.setFillStyle(0x3498db));
+      bg.on("pointerover", () => {
+        bg.setAlpha(0.8);
+        this.game.canvas.style.cursor = "pointer";
+      });
+      bg.on("pointerout", () => {
+        bg.setAlpha(1);
+        this.game.canvas.style.cursor = "default";
+      });
     });
   }
 }

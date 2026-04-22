@@ -4,6 +4,7 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
     private startX: number = 0;
     private startY: number = 0;
     private range: number = 300;
+    public damage: number = 0;
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
         super(scene, x, y, 'bullet');
