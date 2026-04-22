@@ -8,6 +8,11 @@ export class BootScene extends Phaser.Scene {
     preload() {
         // Load assets
         this.load.image('player', 'assets/images/player.png');
+        this.load.spritesheet('city-tiles', 'assets/images/tileset.png', {
+            frameWidth: 64,
+            frameHeight: 64
+        });
+        this.load.tilemapTiledJSON('city-map', 'assets/maps/city.json');
 
         const graphics = this.add.graphics();
         
