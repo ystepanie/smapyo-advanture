@@ -15,7 +15,8 @@ class GameStateManager {
             speed: 200,
             attackDamage: 10,
             attackRate: 500,
-            bulletSpeed: 400
+            bulletSpeed: 400,
+            bulletRange: 250 // 기본 사거리 설정
         };
         this.upgrades = [];
     }

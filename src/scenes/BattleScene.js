@@ -73,6 +73,9 @@ export class BattleScene extends Phaser.Scene {
       { fontSize: "18px", fill: "#2ecc71" },
     );
 
+    // 사거리 가이드 그래픽스 생성
+    this.aimGraphics = this.add.graphics();
+
     this.physics.add.overlap(
       this.bullets,
       this.enemies,
@@ -128,6 +131,9 @@ export class BattleScene extends Phaser.Scene {
       this.lastFired = time + GameState.playerStats.attackRate;
     }
 
+    // 사거리 가이드 화살표 그리기
+    this.drawAimGuide();
+
     this.enemies.getChildren().forEach((enemy) => {
       enemy.update(this.player, time);
     });
@@ -146,6 +152,7 @@ export class BattleScene extends Phaser.Scene {
         this.player.y,
         { x: pointer.worldX, y: pointer.worldY },
         GameState.playerStats.bulletSpeed,
+        GameState.playerStats.bulletRange, // 사거리 적용
       );
     }
   }
@@ -174,6 +181,30 @@ export class BattleScene extends Phaser.Scene {
         this.scene.start("GameOverScene");
       }
     }
+  }
+
+  drawAimGuide() {
+    this.aimGraphics.clear();
+    
+    const pointer = this.input.activePointer;
+    const startX = this.player.x;
+    const startY = this.player.y;
+    const angle = Phaser.Math.Angle.Between(startX, startY, pointer.worldX, pointer.worldY);
+    
+    // 사거리만큼만 화살표를 그리기
+    const range = GameState.playerStats.bulletRange;
+    const endX = startX + Math.cos(angle) * range;
+    const endY = startY + Math.sin(angle) * range;
+    
+    this.aimGraphics.lineStyle(2, 0xffffff, 0.5);
+    
+    // 선 그리기
+    this.aimGraphics.lineBetween(startX, startY, endX, endY);
+    
+    // 화살표 머리 그리기
+    const headSize = 10;
+    this.aimGraphics.lineBetween(endX, endY, endX - headSize * Math.cos(angle - Math.PI / 6), endY - headSize * Math.sin(angle - Math.PI / 6));
+    this.aimGraphics.lineBetween(endX, endY, endX - headSize * Math.cos(angle + Math.PI / 6), endY - headSize * Math.sin(angle + Math.PI / 6));
   }
 
   victory() {
