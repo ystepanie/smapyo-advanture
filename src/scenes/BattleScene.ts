@@ -3,6 +3,7 @@ import { GameState } from "../state/GameState";
 import { Player } from "../entities/Player";
 import { Enemy } from "../entities/Enemy";
 import { Bullet } from "../entities/Bullet";
+import { SKILL_CONFIGS } from "../constants/skillTypes";
 
 export class BattleScene extends Phaser.Scene {
   private player!: Player;
@@ -14,6 +15,11 @@ export class BattleScene extends Phaser.Scene {
   private lastFired: number = 0;
   private hpText!: Phaser.GameObjects.Text;
   private aimGraphics!: Phaser.GameObjects.Graphics;
+  private skillIcons: Map<string, {
+    container: Phaser.GameObjects.Container,
+    overlay: Phaser.GameObjects.Graphics,
+    text: Phaser.GameObjects.Text
+  }> = new Map();
 
   constructor() {
     super("BattleScene");
@@ -109,6 +115,51 @@ export class BattleScene extends Phaser.Scene {
       undefined,
       this,
     );
+
+    this.createSkillUI();
+  }
+
+  createSkillUI(): void {
+    const { width, height } = this.scale;
+    const skills = GameState.playerStats.skills;
+    const slotSize = 50;
+    const padding = 10;
+    
+    skills.forEach((skillType, index) => {
+      const x = width - (index + 1) * (slotSize + padding) - 10;
+      const y = height - slotSize - 20;
+      
+      const container = this.add.container(x, y);
+      
+      // 배경 박스
+      const bg = this.add.rectangle(0, 0, slotSize, slotSize, 0x333333, 0.8).setOrigin(0);
+      bg.setStrokeStyle(2, 0x00ffff);
+      
+      // 스킬 이름/아이콘 (첫 글자)
+      const icon = this.add.text(slotSize / 2, slotSize / 2, skillType[0], {
+        fontSize: "24px",
+        color: "#fff",
+        fontStyle: "bold"
+      }).setOrigin(0.5);
+      
+      // 쿨타임 오버레이 (회색 칠해지는 부분)
+      const overlay = this.add.graphics();
+      
+      // 남은 시간 텍스트
+      const timeText = this.add.text(slotSize / 2, slotSize / 2, "", {
+        fontSize: "14px",
+        color: "#fff",
+        fontStyle: "bold"
+      }).setOrigin(0.5);
+      
+      container.add([bg, icon, overlay, timeText]);
+      
+      this.skillIcons.set(skillType, {
+        container,
+        overlay,
+        text: timeText
+      });
+    });
   }
 
   spawnEnemies(): void {
@@ -161,6 +212,30 @@ export class BattleScene extends Phaser.Scene {
     if (this.enemies.countActive() === 0) {
       this.victory();
     }
+
+    this.updateSkillUI();
+  }
+
+  updateSkillUI(): void {
+    this.skillIcons.forEach((ui, skillType) => {
+      const cooldown = this.player.getCooldown(skillType as any);
+      const config = (SKILL_CONFIGS as any)[skillType];
+      const maxCooldown = config.cooldown;
+      const slotSize = 50;
+
+      ui.overlay.clear();
+
+      if (cooldown > 0) {
+        const ratio = cooldown / maxCooldown;
+        ui.overlay.fillStyle(0x000000, 0.6);
+        ui.overlay.fillRect(0, slotSize * (1 - ratio), slotSize, slotSize * ratio);
+        
+        ui.text.setText(`${(cooldown / 1000).toFixed(1)}`);
+        ui.text.setVisible(true);
+      } else {
+        ui.text.setVisible(false);
+      }
+    });
   }
 
   fireBullet(pointer: Phaser.Input.Pointer): void {

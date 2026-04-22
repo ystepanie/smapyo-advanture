@@ -15,7 +15,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     left: 0,
     right: 0,
   };
-  private dashCooldown: number = 0;
+  
+  private cooldowns: Record<string, number> = {
+    [SkillType.DASH]: 0
+  };
+  
   private isDashing: boolean = false;
   private dashDirection: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
 
@@ -40,8 +44,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.lastHit = 0;
     this.setDepth(10);
 
-    // 키 입력 리스너 설정 (대쉬 감지용)
     this.setupDashListeners();
+  }
+
+  public getCooldown(type: SkillType): number {
+    return Math.max(0, (this.cooldowns[type] || 0) - this.scene.time.now);
   }
 
   private setupDashListeners(): void {
@@ -55,7 +62,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     Object.keys(keyMap).forEach((k) => {
       const keyObj = this.scene.input.keyboard!.addKey(k);
       keyObj.on("down", () => {
-        // 대쉬 스킬이 있을 때만 작동
         if (!GameState.playerStats.skills.includes(SkillType.DASH)) return;
 
         const now = this.scene.time.now;
@@ -71,11 +77,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private attemptDash(): void {
     const now = this.scene.time.now;
-    if (now < this.dashCooldown) return;
+    if (now < this.cooldowns[SkillType.DASH]) return;
 
     const config = SKILL_CONFIGS[SkillType.DASH];
     
-    // 현재 누르고 있는 방향키 확인 (8방향 대쉬)
     let vx = 0;
     let vy = 0;
 
@@ -85,17 +90,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (keys.W.isDown) vy = -1;
     else if (keys.S.isDown) vy = 1;
 
-    // 아무 키도 안 눌려 있으면 대쉬 불가
     if (vx === 0 && vy === 0) return;
 
     this.isDashing = true;
     this.dashDirection.set(vx, vy).normalize();
-    this.dashCooldown = now + config.cooldown;
+    this.cooldowns[SkillType.DASH] = now + config.cooldown;
 
-    // 시각 효과: 잔상 효과처럼 보이게 틴트 적용
     this.setTint(0x00ffff);
     
-    // 대쉬 지속 시간 후 상태 복구
     this.scene.time.delayedCall(config.duration || 200, () => {
       this.isDashing = false;
       this.clearTint();
@@ -138,7 +140,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   takeDamage(amount: number, time: number): boolean {
-    if (this.isDashing) return false; // 대쉬 중 무적 판정
+    if (this.isDashing) return false;
     if (time < this.lastHit + 1000) return false;
 
     this.hp -= amount;
