@@ -11,7 +11,7 @@ export class UpgradeScene extends Phaser.Scene {
 
         this.add.text(width / 2, height / 4, '업그레이드 선택', {
             fontSize: '32px',
-            fill: '#fff',
+            color: '#fff',
             fontFamily: 'Inter'
         }).setOrigin(0.5);
 

@@ -11,13 +11,13 @@ export class GameOverScene extends Phaser.Scene {
 
         this.add.text(width / 2, height / 3, 'Game Over', {
             fontSize: '64px',
-            fill: '#e74c3c',
+            color: '#e74c3c',
             fontFamily: 'Inter'
         }).setOrigin(0.5);
 
         this.add.text(width / 2, height / 2, `도달한 층: ${GameState.level}`, {
             fontSize: '24px',
-            fill: '#fff',
+            color: '#fff',
             fontFamily: 'Inter'
         }).setOrigin(0.5);
 

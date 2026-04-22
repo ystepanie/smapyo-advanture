@@ -11,13 +11,13 @@ export class SetupScene extends Phaser.Scene {
 
         this.add.text(width / 2, height / 4, 'Smapyo Adventure', {
             fontSize: '48px',
-            fill: '#fff',
+            color: '#fff',
             fontFamily: 'Inter'
         }).setOrigin(0.5);
 
         this.add.text(width / 2, height / 2 - 50, '팀을 선택하세요', {
             fontSize: '24px',
-            fill: '#fff',
+            color: '#fff',
             fontFamily: 'Inter'
         }).setOrigin(0.5);
 
