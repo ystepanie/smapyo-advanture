@@ -1,4 +1,5 @@
 import { PLAYER_TYPES } from "../constants/playerTypes";
+import { SkillType } from "../constants/skillTypes";
 
 export interface PlayerStats {
   hp: number;
@@ -8,6 +9,7 @@ export interface PlayerStats {
   attackRate: number;
   bulletSpeed: number;
   bulletRange: number;
+  skills: SkillType[];
 }
 
 export interface PlayerInfo {
@@ -29,6 +31,7 @@ class GameStateManager {
     attackRate: 500,
     bulletSpeed: 400,
     bulletRange: 250,
+    skills: [],
   };
   public upgrades: any[] = [];
 
@@ -50,6 +53,7 @@ class GameStateManager {
       attackRate: 500,
       bulletSpeed: 400,
       bulletRange: 250,
+      skills: [],
     };
     this.upgrades = [];
   }
@@ -65,6 +69,9 @@ class GameStateManager {
     this.playerStats.maxHp = 60 + baseStats.hp * 20;
     this.playerStats.hp = this.playerStats.maxHp;
     this.playerStats.attackRate = baseStats.attackRate;
+    this.playerStats.bulletSpeed = baseStats.bulletSpeed;
+    this.playerStats.bulletRange = baseStats.bulletRange;
+    this.playerStats.skills = [...config.skills];
   }
 }
 

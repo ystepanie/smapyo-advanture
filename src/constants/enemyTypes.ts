@@ -16,7 +16,7 @@ export interface EnemyConfig {
 export const ENEMY_TYPES: Record<string, EnemyConfig> = {
   MANAGER: {
     name: "매니저",
-    hpBase: 20,
+    hpBase: 10,
     hpPerLevel: 5,
     speedBase: 100,
     speedPerLevel: 5,
@@ -29,7 +29,7 @@ export const ENEMY_TYPES: Record<string, EnemyConfig> = {
   },
   SENIOR: {
     name: "책임",
-    hpBase: 40,
+    hpBase: 20,
     hpPerLevel: 10,
     speedBase: 80,
     speedPerLevel: 5,
@@ -43,7 +43,7 @@ export const ENEMY_TYPES: Record<string, EnemyConfig> = {
   },
   DIRECTOR: {
     name: "수석",
-    hpBase: 100,
+    hpBase: 50,
     hpPerLevel: 20,
     speedBase: 120,
     speedPerLevel: 10,
@@ -57,7 +57,7 @@ export const ENEMY_TYPES: Record<string, EnemyConfig> = {
   },
   TEAMLEADER: {
     name: "팀장",
-    hpBase: 500,
+    hpBase: 100,
     hpPerLevel: 100,
     speedBase: 50,
     speedPerLevel: 10,
