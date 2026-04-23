@@ -17,10 +17,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   };
   
   private cooldowns: Record<string, number> = {
-    [SkillType.DASH]: 0
+    [SkillType.DASH]: 0,
+    [SkillType.RELOAD]: 0,
   };
   
-  private isDashing: boolean = false;
+  public isDashing: boolean = false;
+  public isReloading: boolean = false;
   private dashDirection: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
 
   constructor(scene: Phaser.Scene, x: number, y: number, stats: PlayerStats) {
@@ -44,14 +46,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.lastHit = 0;
     this.setDepth(10);
 
-    this.setupDashListeners();
+    this.setupKeyboardListeners();
   }
 
   public getCooldown(type: SkillType): number {
     return Math.max(0, (this.cooldowns[type] || 0) - this.scene.time.now);
   }
 
-  private setupDashListeners(): void {
+  private setupKeyboardListeners(): void {
     const keyMap: Record<string, string> = {
       W: "up",
       A: "left",
@@ -72,6 +74,29 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         }
         this.lastKeyTime[direction] = now;
       });
+    });
+
+    // R 키 장전 리스너
+    const rKey = this.scene.input.keyboard!.addKey("R");
+    rKey.on("down", () => {
+      this.startReload();
+    });
+  }
+
+  public startReload(): void {
+    if (this.isReloading || GameState.playerStats.ammo === GameState.playerStats.maxAmmo) return;
+    
+    const config = SKILL_CONFIGS[SkillType.RELOAD];
+    this.isReloading = true;
+    this.cooldowns[SkillType.RELOAD] = this.scene.time.now + config.duration!;
+    
+    // 장전 중 시각 효과 (회색조 느낌)
+    this.setTint(0x888888);
+    
+    this.scene.time.delayedCall(config.duration!, () => {
+      GameState.playerStats.ammo = GameState.playerStats.maxAmmo;
+      this.isReloading = false;
+      this.clearTint();
     });
   }
 
@@ -100,7 +125,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     
     this.scene.time.delayedCall(config.duration || 200, () => {
       this.isDashing = false;
-      this.clearTint();
+      if (!this.isReloading) this.clearTint();
+      else this.setTint(0x888888);
     });
   }
 
@@ -137,6 +163,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     body.velocity.normalize().scale(this.speed);
+  }
+
+  public canShoot(): boolean {
+    return !this.isReloading && GameState.playerStats.ammo > 0;
+  }
+
+  public consumeAmmo(): void {
+    GameState.playerStats.ammo--;
+    if (GameState.playerStats.ammo <= 0) {
+      this.startReload();
+    }
   }
 
   takeDamage(amount: number, time: number): boolean {

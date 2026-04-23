@@ -9,6 +9,8 @@ export interface PlayerStats {
   attackRate: number;
   bulletSpeed: number;
   bulletRange: number;
+  ammo: number;
+  maxAmmo: number;
   skills: SkillType[];
 }
 
@@ -31,6 +33,8 @@ class GameStateManager {
     attackRate: 500,
     bulletSpeed: 400,
     bulletRange: 250,
+    ammo: 20,
+    maxAmmo: 20,
     skills: [],
   };
   public upgrades: any[] = [];
@@ -53,6 +57,8 @@ class GameStateManager {
       attackRate: 500,
       bulletSpeed: 400,
       bulletRange: 250,
+      ammo: 20,
+      maxAmmo: 20,
       skills: [],
     };
     this.upgrades = [];
@@ -71,6 +77,8 @@ class GameStateManager {
     this.playerStats.attackRate = baseStats.attackRate;
     this.playerStats.bulletSpeed = baseStats.bulletSpeed;
     this.playerStats.bulletRange = baseStats.bulletRange;
+    this.playerStats.maxAmmo = baseStats.maxAmmo;
+    this.playerStats.ammo = baseStats.maxAmmo;
     this.playerStats.skills = [...config.skills];
   }
 }

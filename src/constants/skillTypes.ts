@@ -2,6 +2,7 @@ export enum SkillType {
   DASH = "DASH",
   SHIELD = "SHIELD",
   BURST = "BURST",
+  RELOAD = "RELOAD",
 }
 
 export interface SkillConfig {
@@ -36,5 +37,12 @@ export const SKILL_CONFIGS: Record<SkillType, SkillConfig> = {
     duration: 3000,
     power: 2,
     description: "잠시 동안 공격 속도가 2배가 됩니다.",
+  },
+  [SkillType.RELOAD]: {
+    name: "장전",
+    type: SkillType.RELOAD,
+    cooldown: 0,
+    duration: 1500,
+    description: "탄환을 재장전합니다.",
   },
 };

@@ -14,6 +14,7 @@ export class BattleScene extends Phaser.Scene {
   private cursors!: any;
   private lastFired: number = 0;
   private hpText!: Phaser.GameObjects.Text;
+  private ammoText!: Phaser.GameObjects.Text;
   private aimGraphics!: Phaser.GameObjects.Graphics;
   private skillIcons: Map<string, {
     container: Phaser.GameObjects.Container,
@@ -90,6 +91,13 @@ export class BattleScene extends Phaser.Scene {
       50,
       `HP: ${this.player.hp}/${GameState.playerStats.maxHp}`,
       { fontSize: "18px", color: "#2ecc71" },
+    );
+
+    this.ammoText = this.add.text(
+      16,
+      80,
+      `AMMO: ${GameState.playerStats.ammo}/${GameState.playerStats.maxAmmo}`,
+      { fontSize: "18px", color: "#f1c40f" },
     );
 
     this.aimGraphics = this.add.graphics();
@@ -198,12 +206,22 @@ export class BattleScene extends Phaser.Scene {
   update(time: number): void {
     this.player.update(this.cursors);
 
-    if (this.input.activePointer.isDown && time > this.lastFired) {
+    if (this.input.activePointer.isDown && time > this.lastFired && this.player.canShoot()) {
       this.fireBullet(this.input.activePointer);
+      this.player.consumeAmmo();
       this.lastFired = time + GameState.playerStats.attackRate;
     }
 
     this.drawAimGuide();
+    this.ammoText.setText(`AMMO: ${GameState.playerStats.ammo}/${GameState.playerStats.maxAmmo}`);
+    
+    // 장전 중이면 텍스트 강조
+    if (this.player.isReloading) {
+        this.ammoText.setText("RELOADING...");
+        this.ammoText.setColor("#e74c3c");
+    } else {
+        this.ammoText.setColor("#f1c40f");
+    }
 
     this.enemies.getChildren().forEach((enemy) => {
       (enemy as Enemy).update(this.player, time);
@@ -220,7 +238,7 @@ export class BattleScene extends Phaser.Scene {
     this.skillIcons.forEach((ui, skillType) => {
       const cooldown = this.player.getCooldown(skillType as any);
       const config = (SKILL_CONFIGS as any)[skillType];
-      const maxCooldown = config.cooldown;
+      const maxCooldown = config.cooldown || config.duration || 1000;
       const slotSize = 50;
 
       ui.overlay.clear();

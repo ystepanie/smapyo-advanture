@@ -11,6 +11,7 @@ export interface PlayerConfig {
     attackRate: number;
     bulletSpeed: number;
     bulletRange: number;
+    maxAmmo: number;
   };
   skills: SkillType[];
 }
@@ -27,8 +28,9 @@ export const PLAYER_TYPES: Record<string, PlayerConfig> = {
       attackRate: 500,
       bulletSpeed: 400,
       bulletRange: 250,
+      maxAmmo: 20,
     },
-    skills: [SkillType.DASH, SkillType.SHIELD],
+    skills: [SkillType.DASH, SkillType.SHIELD, SkillType.RELOAD],
   },
   SM2팀: {
     teamName: "SM2팀",
@@ -41,8 +43,9 @@ export const PLAYER_TYPES: Record<string, PlayerConfig> = {
       attackRate: 500,
       bulletSpeed: 350,
       bulletRange: 200,
+      maxAmmo: 12,
     },
-    skills: [SkillType.DASH, SkillType.BURST],
+    skills: [SkillType.DASH, SkillType.BURST, SkillType.RELOAD],
   },
   SM3팀: {
     teamName: "SM3팀",
@@ -55,7 +58,8 @@ export const PLAYER_TYPES: Record<string, PlayerConfig> = {
       attackRate: 400,
       bulletSpeed: 500,
       bulletRange: 300,
+      maxAmmo: 30,
     },
-    skills: [SkillType.DASH],
+    skills: [SkillType.DASH, SkillType.RELOAD],
   },
 };
